@@ -22,17 +22,17 @@ import java.util.Map;
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.tomcat.websocket.server.WsSci;
-import org.springframework.boot.config.EnableAutoConfiguration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.condition.ConditionalOnClass;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.samples.websocket.client.GreetingService;
 import org.springframework.boot.samples.websocket.client.SimpleGreetingService;
 import org.springframework.boot.samples.websocket.echo.DefaultEchoService;
 import org.springframework.boot.samples.websocket.echo.EchoService;
 import org.springframework.boot.samples.websocket.echo.EchoWebSocketHandler;
 import org.springframework.boot.samples.websocket.snake.SnakeWebSocketHandler;
-import org.springframework.boot.strap.SpringApplication;
-import org.springframework.boot.strap.context.condition.ConditionalOnClass;
-import org.springframework.boot.strap.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.strap.web.SpringServletInitializer;
+import org.springframework.boot.web.SpringServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -46,33 +46,31 @@ import org.springframework.web.socket.sockjs.support.SockJsHttpRequestHandler;
 import org.springframework.web.socket.support.PerConnectionWebSocketHandler;
 
 @Configuration
-@EnableAutoConfiguration
-public class ApplicationConfiguration extends SpringServletInitializer {
+public class SampleWebSocketsApplication extends SpringServletInitializer {
 
 	@Override
 	protected Class<?>[] getConfigClasses() {
-		logger.debug("Standard Java for WebSocket not present, JSR-356 endpoints will not be loaded");
-		return new Class<?>[] { ApplicationConfiguration.class };
+		return new Class<?>[] { SampleWebSocketsApplication.class };
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(new ApplicationConfiguration().getConfigClasses(), args);
+		SpringApplication.run(SampleWebSocketsApplication.class, args);
 	}
 
 	@ConditionalOnClass(Tomcat.class)
 	@Configuration
-	protected static class WsInitializationConfiguration {
-		
+	@EnableAutoConfiguration
+	protected static class InitializationConfiguration {
 		@Bean
 		public TomcatEmbeddedServletContainerFactory tomcatEmbeddedServletContainerFactory() {
-			return new TomcatEmbeddedServletContainerFactory() {
+			TomcatEmbeddedServletContainerFactory factory = new TomcatEmbeddedServletContainerFactory() {
 				@Override
 				protected void postProcessContext(Context context) {
 					context.addServletContainerInitializer(new WsSci(), null);
 				}
 			};
+			return factory;
 		}
-
 	}
 
 	@Bean
